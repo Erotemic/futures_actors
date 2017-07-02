@@ -2,9 +2,13 @@
 from concurrent.futures import _base
 from concurrent.futures import thread
 from futures_actors import _base_actor
-import queue
 import threading
 import weakref
+import sys
+if sys.version_info.major >= 3:
+    import queue
+else:
+    import Queue as queue
 
 # Most of this code is duplicated from the concurrent.futures.thread and
 # concurrent.futures.process modules, writen by Brian Quinlan. The main

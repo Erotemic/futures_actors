@@ -47,7 +47,7 @@ Here is another setting multiple messages at once, cancelling a task, and
 adding callbacks.
 
 
-```
+```python
 import futures_actors
 
 class TestActor(futures_actors.ProcessActor):

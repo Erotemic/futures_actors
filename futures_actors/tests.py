@@ -107,9 +107,10 @@ def test_callbacks(ActorClass, F=0.01):
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
         >>>     test_callbacks(TestProcessActor, F=1.0)
-        >>> except AssertionError:
+        >>> except AssertionError as ex:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
+        >>>     print(ex)
         >>>     print('Failed the fast version. Try once more, but slower')
         >>>     test_callbacks(TestProcessActor, F=2.0)
 
@@ -117,7 +118,8 @@ def test_callbacks(ActorClass, F=0.01):
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
         >>>     test_callbacks(TestThreadActor, F=1.0)
-        >>> except AssertionError:
+        >>> except AssertionError as ex:
+        >>>     print(ex)
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
         >>>     print('Failed the fast version. Try once more, but slower')
@@ -175,7 +177,8 @@ def test_cancel(ActorClass, F=0.01):
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
         >>>     test_cancel(TestProcessActor, F=0.01)
-        >>> except AssertionError:
+        >>> except AssertionError as ex:
+        >>>     print(ex)
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
         >>>     print('!Failed the fast version. Try once more, but slower')
@@ -186,7 +189,8 @@ def test_cancel(ActorClass, F=0.01):
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
         >>>     test_cancel(TestThreadActor, F=1.0)
-        >>> except AssertionError:
+        >>> except AssertionError as ex:
+        >>>     print(ex)
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
         >>>     print('!Failed the fast version. Try once more, but slower')

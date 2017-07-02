@@ -200,8 +200,8 @@ def main():
         ActorClass = TestThreadActor
 
     Example:
-        >>> from futures_actors.tests import *
-        >>> main()
+        >>> from futures_actors import tests
+        >>> tests.main()
     """
     classes = [
         TestProcessActor,
@@ -217,7 +217,7 @@ def main():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m futures_actors.tests
+        python -m futures_actors.tests all --verbose
     """
     import ubelt as ub  # NOQA
     ub.doctest_package()

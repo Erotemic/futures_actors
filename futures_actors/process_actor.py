@@ -1,13 +1,15 @@
 """ Implements ProcessActor """
 from concurrent.futures import _base
 from concurrent.futures import process
-from multiprocessing.connection import wait
 from futures_actors import _base_actor
+import sys
 import os
 import queue
 import weakref
 import threading
 import multiprocessing
+if sys.version_info.major >= 3:
+    from multiprocessing.connection import wait
 
 
 # Most of this code is duplicated from the concurrent.futures.thread and
@@ -96,99 +98,147 @@ def _add_call_item_to_queue(pending_work_items,
                 continue
 
 
-def _queue_management_worker(executor_reference,
-                             _manager,
-                             pending_work_items,
-                             work_ids_queue,
-                             _call_queue,
-                             _result_queue):
-    """Manages the communication between this process and the worker processes."""
-    executor = None
+if sys.version_info.major >= 3:
+    # Normal python3 version
 
-    def shutting_down():
-        return process._shutdown or executor is None or executor._shutdown_thread
+    def _queue_management_worker(executor_reference,
+                                 _manager,
+                                 pending_work_items,
+                                 work_ids_queue,
+                                 _call_queue,
+                                 _result_queue):
+        """Manages the communication between this process and the worker processes."""
+        executor = None
 
-    def shutdown_worker():
-        # This is an upper bound
-        if _manager.is_alive():
-            _call_queue.put_nowait(None)
-        # Release the queue's resources as soon as possible.
-        _call_queue.close()
-        # If .join() is not called on the created processes then
-        # some multiprocessing.Queue methods may deadlock on Mac OS X.
-        _manager.join()
+        def shutting_down():
+            return process._shutdown or executor is None or executor._shutdown_thread
 
-    reader = _result_queue._reader
-
-    while True:
-        _add_call_item_to_queue(pending_work_items,
-                                work_ids_queue,
-                                _call_queue)
-
-        sentinel = _manager.sentinel
-        assert sentinel
-        ready = wait([reader, sentinel])
-        if reader in ready:
-            result_item = reader.recv()
-        else:
-            # Mark the process pool broken so that submits fail right now.
-            executor = executor_reference()
-            if executor is not None:
-                executor._broken = True
-                executor._shutdown_thread = True
-                executor = None
-            # All futures in flight must be marked failed
-            for work_id, work_item in pending_work_items.items():
-                work_item.future.set_exception(
-                    process.BrokenProcessPool(
-                        "A process in the process pool was "
-                        "terminated abruptly while the future was "
-                        "running or pending."
-                    ))
-                # Delete references to object. See issue16284
-                del work_item
-            pending_work_items.clear()
-            # Terminate remaining workers forcibly: the queues or their
-            # locks may be in a dirty state and block forever.
-            _manager.terminate()
-            shutdown_worker()
-            return
-        if isinstance(result_item, int):
-            # Clean shutdown of a worker using its PID
-            # (avoids marking the executor broken)
-            assert shutting_down()
+        def shutdown_worker():
+            # This is an upper bound
+            if _manager.is_alive():
+                _call_queue.put_nowait(None)
+            # Release the queue's resources as soon as possible.
+            _call_queue.close()
+            # If .join() is not called on the created processes then
+            # some multiprocessing.Queue methods may deadlock on Mac OS X.
             _manager.join()
-            if _manager is None:
+
+        reader = _result_queue._reader
+
+        while True:
+            _add_call_item_to_queue(pending_work_items,
+                                    work_ids_queue,
+                                    _call_queue)
+
+            sentinel = _manager.sentinel
+            assert sentinel
+            ready = wait([reader, sentinel])
+            if reader in ready:
+                result_item = reader.recv()
+            else:
+                # Mark the process pool broken so that submits fail right now.
+                executor = executor_reference()
+                if executor is not None:
+                    executor._broken = True
+                    executor._shutdown_thread = True
+                    executor = None
+                # All futures in flight must be marked failed
+                for work_id, work_item in pending_work_items.items():
+                    work_item.future.set_exception(
+                        process.BrokenProcessPool(
+                            "A process in the process pool was "
+                            "terminated abruptly while the future was "
+                            "running or pending."
+                        ))
+                    # Delete references to object. See issue16284
+                    del work_item
+                pending_work_items.clear()
+                # Terminate remaining workers forcibly: the queues or their
+                # locks may be in a dirty state and block forever.
+                _manager.terminate()
                 shutdown_worker()
                 return
-        elif result_item is not None:
-            work_item = pending_work_items.pop(result_item.work_id, None)
-            # work_item can be None if another process terminated (see above)
-            if work_item is not None:
+            if isinstance(result_item, int):
+                # Clean shutdown of a worker using its PID
+                # (avoids marking the executor broken)
+                assert shutting_down()
+                _manager.join()
+                if _manager is None:
+                    shutdown_worker()
+                    return
+            elif result_item is not None:
+                work_item = pending_work_items.pop(result_item.work_id, None)
+                # work_item can be None if another process terminated (see above)
+                if work_item is not None:
+                    if result_item.exception:
+                        work_item.future.set_exception(result_item.exception)
+                    else:
+                        work_item.future.set_result(result_item.result)
+                    # Delete references to object. See issue16284
+                    del work_item
+            # Check whether we should start shutting down.
+            executor = executor_reference()
+            # No more work items can be added if:
+            #   - The interpreter is shutting down OR
+            #   - The executor that owns this worker has been collected OR
+            #   - The executor that owns this worker has been shutdown.
+            if shutting_down():
+                try:
+                    # Since no new work items can be added, it is safe to shutdown
+                    # this thread if there are no pending work items.
+                    if not pending_work_items:
+                        shutdown_worker()
+                        return
+                except queue.Full:
+                    # This is not a problem: we will eventually be woken up (in
+                    # _result_queue.get()) and be able to send a sentinel again.
+                    pass
+            executor = None
+else:
+    # Compatibility with the python 2 backport
+    def _queue_management_worker(executor_reference, _manager,
+                                 pending_work_items, work_ids_queue,
+                                 _call_queue, _result_queue):
+        nb_shutdown_processes = [0]
+        def shutdown_one_process():
+            """Tell a worker to terminate, which will in turn wake us again"""
+            _call_queue.put(None)
+            nb_shutdown_processes[0] += 1
+        while True:
+            _add_call_item_to_queue(pending_work_items,
+                                    work_ids_queue,
+                                    _call_queue)
+
+            result_item = _result_queue.get(block=True)
+            if result_item is not None:
+                work_item = pending_work_items[result_item.work_id]
+                del pending_work_items[result_item.work_id]
+
                 if result_item.exception:
                     work_item.future.set_exception(result_item.exception)
                 else:
                     work_item.future.set_result(result_item.result)
                 # Delete references to object. See issue16284
                 del work_item
-        # Check whether we should start shutting down.
-        executor = executor_reference()
-        # No more work items can be added if:
-        #   - The interpreter is shutting down OR
-        #   - The executor that owns this worker has been collected OR
-        #   - The executor that owns this worker has been shutdown.
-        if shutting_down():
-            try:
+            # Check whether we should start shutting down.
+            executor = executor_reference()
+            # No more work items can be added if:
+            #   - The interpreter is shutting down OR
+            #   - The executor that owns this worker has been collected OR
+            #   - The executor that owns this worker has been shutdown.
+            if process._shutdown or executor is None or executor._shutdown_thread:
                 # Since no new work items can be added, it is safe to shutdown
                 # this thread if there are no pending work items.
                 if not pending_work_items:
-                    shutdown_worker()
+                    while nb_shutdown_processes[0] < 1:
+                        shutdown_one_process()
+                    # If .join() is not called on the created processes then
+                    # some multiprocessing.Queue methods may deadlock on Mac OS
+                    # X.
+                    _manager.join()
+                    _call_queue.close()
                     return
-            except queue.Full:
-                # This is not a problem: we will eventually be woken up (in
-                # _result_queue.get()) and be able to send a sentinel again.
-                pass
-        executor = None
+            del executor
 
 
 class ProcessActorExecutor(_base_actor.ActorExecutor):

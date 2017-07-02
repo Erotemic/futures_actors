@@ -59,6 +59,12 @@ class TestThreadActor(TestActorMixin, futures_actors.ThreadActor):
 
 
 def test_simple(ActorClass):
+    """
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_simple(TestProcessActor)
+        >>> test_simple(TestThreadActor)
+    """
     # from actor2 import *
     # from actor2 import _add_call_item_to_queue, _queue_management_worker
 
@@ -90,6 +96,12 @@ def test_simple(ActorClass):
 
 
 def test_callbacks(ActorClass):
+    """
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_callbacks(TestProcessActor)
+        >>> test_callbacks(TestThreadActor)
+    """
     print('-----------------')
     print('Test callbacks for {}'.format(ActorClass))
 
@@ -126,6 +138,12 @@ def test_callbacks(ActorClass):
 
 
 def test_cancel(ActorClass):
+    """
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_cancel(TestProcessActor)
+        >>> test_cancel(TestThreadActor)
+    """
     print('-----------------')
     print('Test cancel for {}'.format(ActorClass))
 
@@ -166,12 +184,24 @@ def test_cancel(ActorClass):
 
 
 def test_actor_args(ActorClass):
+    """
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_actor_args(TestProcessActor)
+        >>> test_actor_args(TestThreadActor)
+    """
     ex1 = ActorClass.executor(8, factor=8)
     f1 = ex1.post({'action': 'add'})
     assert f1.result()[1] == 10000064
 
 
 def test_multiple(ActorClass):
+    """
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_multiple(TestProcessActor)
+        >>> test_multiple(TestThreadActor)
+    """
     print('-----------------')
     print('Test multiple for {}'.format(ActorClass))
     # Make multiple actors and send them each multiple jobs
@@ -193,26 +223,26 @@ def test_multiple(ActorClass):
     print('L______________')
 
 
-def main():
-    """
-    Ignore:
-        ActorClass = TestProcessActor
-        ActorClass = TestThreadActor
+# def main():
+#     """
+#     Ignore:
+#         ActorClass = TestProcessActor
+#         ActorClass = TestThreadActor
 
-    Example:
-        >>> from futures_actors import tests
-        >>> tests.main()
-    """
-    classes = [
-        TestProcessActor,
-        TestThreadActor,
-    ]
-    for ActorClass in classes:
-        test_multiple(ActorClass)
-        test_actor_args(ActorClass)
-        test_simple(ActorClass)
-        test_callbacks(ActorClass)
-        test_cancel(ActorClass)
+#     Example:
+#         >>> from futures_actors import tests
+#         >>> tests.main()
+#     """
+#     classes = [
+#         TestProcessActor,
+#         TestThreadActor,
+#     ]
+#     for ActorClass in classes:
+#         test_multiple(ActorClass)
+#         test_actor_args(ActorClass)
+#         test_simple(ActorClass)
+#         test_callbacks(ActorClass)
+#         test_cancel(ActorClass)
 
 if __name__ == '__main__':
     r"""

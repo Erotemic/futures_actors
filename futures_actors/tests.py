@@ -10,8 +10,6 @@ class TestActorMixin(object):
     The handle method must be implemented by the user.
     """
     def __init__(actor, a=None, factor=1):
-        print('init mixin with args')
-        print('a = %r' % (a,))
         actor.state = {}
         if a is not None:
             actor.state['a'] = a * factor
@@ -98,15 +96,26 @@ def test_simple(ActorClass):
     print('L______________')
 
 
-def test_callbacks(ActorClass):
+def test_callbacks(ActorClass, F=0.01):
     """
+    F is a  Factor to control wait time
+
+    CommandLine:
+        python -m futures_actors.tests test_callbacks:1
+
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_callbacks(TestProcessActor)
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
-        >>> test_callbacks(TestThreadActor)
+        >>> try:
+        >>>     test_callbacks(TestThreadActor, F=0.01)
+        >>> except AssertionError:
+        >>>     # If it fails once on the fast setting try
+        >>>     # once more on a slower setting (for travis python 2.7)
+        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     test_callbacks(TestThreadActor, F=1.0)
     """
     print('-----------------')
     print('Test callbacks for {}'.format(ActorClass))
@@ -118,16 +127,16 @@ def test_callbacks(ActorClass):
         test_state['num'] += num
         print('DONE CALLBACK GOT = {}'.format(num))
 
-    # Factor to control wait time
-    F = .01
-
     executor = ActorClass.executor()
+    print('Submit task 1')
     f1 = executor.post({'action': 'wait', 'time': 1 * F})
     f1.add_done_callback(done_callback)
 
+    print('Submit task 2')
     f2 = executor.post({'action': 'wait', 'time': 2 * F})
     f2.add_done_callback(done_callback)
 
+    print('Submit task 3')
     f3 = executor.post({'action': 'wait', 'time': 3 * F})
     f3.add_done_callback(done_callback)
 
@@ -146,15 +155,27 @@ def test_callbacks(ActorClass):
     print('L______________')
 
 
-def test_cancel(ActorClass):
+def test_cancel(ActorClass, F=0.01):
     """
+    F is a factor to control wait time
+
+    CommandLine:
+        python -m futures_actors.tests test_cancel:1
+
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_cancel(TestProcessActor)
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
-        >>> test_cancel(TestThreadActor)
+        >>> try:
+        >>>     test_cancel(TestThreadActor, F=0.01)
+        >>> except AssertionError:
+        >>>     # If it fails once on the fast setting try
+        >>>     # once more on a slower setting (for travis python 2.7)
+        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     test_cancel(TestThreadActor, F=2.0)
+
     """
     print('-----------------')
     print('Test cancel for {}'.format(ActorClass))
@@ -171,19 +192,20 @@ def test_cancel(ActorClass):
             test_state['num'] += num
             print('DONE CALLBACK GOT = {}'.format(num))
 
-    # Factor to control wait time
-    F = .01
-
     executor = ActorClass.executor()
+    print('Submit task 1')
     f1 = executor.post({'action': 'wait', 'time': 1 * F})
     f1.add_done_callback(done_callback)
 
+    print('Submit task 2')
     f2 = executor.post({'action': 'wait', 'time': 2 * F})
     f2.add_done_callback(done_callback)
 
+    print('Submit task 3')
     f3 = executor.post({'action': 'wait', 'time': 3 * F})
     f3.add_done_callback(done_callback)
 
+    print('Submit task 4')
     f4 = executor.post({'action': 'wait', 'time': 4 * F})
     f4.add_done_callback(done_callback)
 

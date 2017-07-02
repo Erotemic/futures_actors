@@ -169,7 +169,7 @@ def test_cancel(ActorClass, F=0.01):
     F is a factor to control wait time
 
     CommandLine:
-        python -m futures_actors.tests test_cancel:1
+        python -m futures_actors.tests test_cancel
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
@@ -185,7 +185,7 @@ def test_cancel(ActorClass, F=0.01):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
-        >>>     test_cancel(TestThreadActor, F=0.01)
+        >>>     test_cancel(TestThreadActor, F=1.0)
         >>> except AssertionError:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)

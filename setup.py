@@ -15,20 +15,16 @@ Pypi:
      git tag $VERSION -m "tarball tag $VERSION"
      git push --tags origin master
 
-     # Register on Pypi test
-     python setup.py register -r pypitest
-     python setup.py sdist upload -r pypitest
+     # Build wheel for distribution
+     python setup.py bdist_wheel --universal
+
+     # Use twine to upload. This will prompt for username and password
+     pip install twine
+     twine upload --username erotemic --skip-existing dist/*
 
      # Check the url to make sure everything worked
-     https://testpypi.python.org/pypi?:action=display&name=futures_actors
+     https://pypi.org/project/futures_actors/
 
-     # Register on Pypi live
-     python setup.py register -r pypi
-     # Note you need to temporarily edit your ~/.pypirc to include a password
-     python setup.py sdist upload -r pypi
-
-     # Check the url to make sure everything worked
-     https://pypi.python.org/pypi?:action=display&name=futures_actors
 """
 from setuptools import setup
 
@@ -52,11 +48,30 @@ def parse_version():
 
 
 def parse_description():
-    from os.path import dirname, join
+    """
+    python -c "import setup; print(setup.parse_description())"
+    """
+    from os.path import dirname, join, exists
     readme_fpath = join(dirname(__file__), 'README.md')
-    with open(readme_fpath, 'r') as f:
-        # TODO: strip out markdown to make a clean readme for pypi
-        return f.read()
+    print('readme_fpath = %r' % (readme_fpath,))
+    # This breaks on pip install, so check that it exists.
+    if exists(readme_fpath):
+        # strip out markdown to make a clean readme for pypi
+        textlines = []
+        with open(readme_fpath, 'r') as f:
+            capture = False
+            for line in f.readlines():
+                if '# Purpose' in line:
+                    capture = True
+                elif line.startswith('##'):
+                    break
+                elif capture:
+                    textlines += [line]
+        text = ''.join(textlines).strip()
+        text = text.replace('\n\n', '_NLHACK_')
+        text = text.replace('\n', ' ')
+        text = text.replace('_NLHACK_', '\n\n')
+        return text
 
 
 version = parse_version()

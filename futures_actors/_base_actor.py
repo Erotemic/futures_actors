@@ -64,7 +64,7 @@ class Actor(object):
         Creates an asychronous instance of this Actor and returns the executor
         to manage it.
         """
-        raise NotImplementedError('use ProcessActor or ThreadActor')
+        raise NotImplementedError('use ProcessActor or ThreadActor')  # nocover
 
     def handle(self, message):
         """
@@ -73,4 +73,4 @@ class Actor(object):
         can be accessed from the main thread using the Future object returned
         when the message was posted to this actor by the executor.
         """
-        raise NotImplementedError('must implement message handler')
+        raise NotImplementedError('must implement message handler')  # nocover

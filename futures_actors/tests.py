@@ -178,8 +178,9 @@ def test_cancel(ActorClass, F=0.01):
         >>> except AssertionError:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
-        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     print('!Failed the fast version. Try once more, but slower')
         >>>     test_cancel(TestProcessActor, F=2.0)
+        >>>     print('Slower version worked')
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
@@ -188,8 +189,9 @@ def test_cancel(ActorClass, F=0.01):
         >>> except AssertionError:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
-        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     print('!Failed the fast version. Try once more, but slower')
         >>>     test_cancel(TestThreadActor, F=2.0)
+        >>>     print('Slower version worked')
 
     """
     print('-----------------')
@@ -228,8 +230,11 @@ def test_cancel(ActorClass, F=0.01):
     # print('can_cancel = %r' % (can_cancel,))
     assert can_cancel, 'we should be able to cancel in time'
 
+    f1.result()
+    f2.result()
     f4.result()
-    assert test_state['num'] == 7 * F, 'f3 was not cancelled'
+    num = test_state['num']
+    assert num == 7 * F, 'f3 was not cancelled. got num={}'.format(num)
 
     print('Test completed')
     print('L______________')

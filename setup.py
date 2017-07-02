@@ -9,6 +9,8 @@ Developing:
     pip install -e futures_actors
 
 Pypi:
+     pip install twine
+
      # First tag the source-code
      VERSION=$(python -c "import setup; print(setup.version)")
      echo $VERSION
@@ -19,7 +21,6 @@ Pypi:
      python setup.py bdist_wheel --universal
 
      # Use twine to upload. This will prompt for username and password
-     pip install twine
      twine upload --username erotemic --skip-existing dist/*
 
      # Check the url to make sure everything worked
@@ -91,6 +92,8 @@ if __name__ == '__main__':
             'futures',
             # 'ubelt',
         ],
+        description='An extension of the concurrent.futures module to support stateful computations.',
+        long_description=parse_description(),
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/futures_actors',
         license='Apache 2',

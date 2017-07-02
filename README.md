@@ -2,7 +2,7 @@
 [![Pypi](https://img.shields.io/pypi/v/futures_actors.svg)](https://pypi.python.org/pypi/futures_actors)
 [![Codecov](https://codecov.io/github/Erotemic/futures_actors/badge.svg?branch=master&service=github)](https://codecov.io/github/Erotemic/futures_actors?branch=master)
 
-An extension of the python concurrent.futures module to support stateful computations using a simplified actor model. 
+An extension of the concurrent.futures module to support stateful computations using a simplified actor model. 
 
 
 ## Purpose

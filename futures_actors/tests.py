@@ -105,7 +105,13 @@ def test_callbacks(ActorClass, F=0.01):
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
-        >>> test_callbacks(TestProcessActor)
+        >>> try:
+        >>>     test_callbacks(TestProcessActor, F=0.01)
+        >>> except AssertionError:
+        >>>     # If it fails once on the fast setting try
+        >>>     # once more on a slower setting (for travis python 2.7)
+        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     test_callbacks(TestProcessActor, F=2.0)
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
@@ -115,7 +121,7 @@ def test_callbacks(ActorClass, F=0.01):
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
         >>>     print('Failed the fast version. Try once more, but slower')
-        >>>     test_callbacks(TestThreadActor, F=1.0)
+        >>>     test_callbacks(TestThreadActor, F=2.0)
     """
     print('-----------------')
     print('Test callbacks for {}'.format(ActorClass))
@@ -141,15 +147,18 @@ def test_callbacks(ActorClass, F=0.01):
     f3.add_done_callback(done_callback)
 
     # Should reach this immediately before any task is done
-    assert test_state['num'] == 0 * F, 'should not have finished any task yet'
+    num = test_state['num']
+    assert num == 0 * F, 'should not have finished any task yet. got num={}'.format(num)
 
     # Wait for the second result
     print(f2.result())
-    assert test_state['num'] == 3 * F, 'should have finished task 1 and 2'
+    num = test_state['num']
+    assert num == 3 * F, 'should have finished task 1 and 2. got num={}'.format(num)
 
     # Wait for the third result
     print(f3.result())
-    assert test_state['num'] == 6 * F
+    num = test_state['num']
+    assert num == 6 * F, 'should have finished all tasks. got num={}'.format(num)
 
     print('Test completed')
     print('L______________')
@@ -164,7 +173,13 @@ def test_cancel(ActorClass, F=0.01):
 
     Example:
         >>> from futures_actors.tests import *  # NOQA
-        >>> test_cancel(TestProcessActor)
+        >>> try:
+        >>>     test_cancel(TestProcessActor, F=0.01)
+        >>> except AssertionError:
+        >>>     # If it fails once on the fast setting try
+        >>>     # once more on a slower setting (for travis python 2.7)
+        >>>     print('Failed the fast version. Try once more, but slower')
+        >>>     test_cancel(TestProcessActor, F=2.0)
 
     Example:
         >>> from futures_actors.tests import *  # NOQA

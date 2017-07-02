@@ -43,7 +43,7 @@ class TestActorMixin(object):
             actor.state['a'] = 3
             return 'started'
         elif action == 'add':
-            for i in range(10000000):
+            for i in range(1000):
                 actor.state['a'] += 1
             return 'added', actor.state['a']
         else:
@@ -63,6 +63,9 @@ def test_simple(ActorClass):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_simple(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
         >>> test_simple(TestThreadActor)
     """
     # from actor2 import *
@@ -100,6 +103,9 @@ def test_callbacks(ActorClass):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_callbacks(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
         >>> test_callbacks(TestThreadActor)
     """
     print('-----------------')
@@ -112,26 +118,29 @@ def test_callbacks(ActorClass):
         test_state['num'] += num
         print('DONE CALLBACK GOT = {}'.format(num))
 
+    # Factor to control wait time
+    F = .01
+
     executor = ActorClass.executor()
-    f1 = executor.post({'action': 'wait', 'time': 1})
+    f1 = executor.post({'action': 'wait', 'time': 1 * F})
     f1.add_done_callback(done_callback)
 
-    f2 = executor.post({'action': 'wait', 'time': 2})
+    f2 = executor.post({'action': 'wait', 'time': 2 * F})
     f2.add_done_callback(done_callback)
 
-    f3 = executor.post({'action': 'wait', 'time': 3})
+    f3 = executor.post({'action': 'wait', 'time': 3 * F})
     f3.add_done_callback(done_callback)
 
     # Should reach this immediately before any task is done
-    assert test_state['num'] == 0, 'should not have finished any task yet'
+    assert test_state['num'] == 0 * F, 'should not have finished any task yet'
 
     # Wait for the second result
     print(f2.result())
-    assert test_state['num'] == 3, 'should have finished task 1 and 2'
+    assert test_state['num'] == 3 * F, 'should have finished task 1 and 2'
 
     # Wait for the third result
     print(f3.result())
-    assert test_state['num'] == 6
+    assert test_state['num'] == 6 * F
 
     print('Test completed')
     print('L______________')
@@ -142,6 +151,9 @@ def test_cancel(ActorClass):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_cancel(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
         >>> test_cancel(TestThreadActor)
     """
     print('-----------------')
@@ -159,17 +171,20 @@ def test_cancel(ActorClass):
             test_state['num'] += num
             print('DONE CALLBACK GOT = {}'.format(num))
 
+    # Factor to control wait time
+    F = .01
+
     executor = ActorClass.executor()
-    f1 = executor.post({'action': 'wait', 'time': 1})
+    f1 = executor.post({'action': 'wait', 'time': 1 * F})
     f1.add_done_callback(done_callback)
 
-    f2 = executor.post({'action': 'wait', 'time': 2})
+    f2 = executor.post({'action': 'wait', 'time': 2 * F})
     f2.add_done_callback(done_callback)
 
-    f3 = executor.post({'action': 'wait', 'time': 3})
+    f3 = executor.post({'action': 'wait', 'time': 3 * F})
     f3.add_done_callback(done_callback)
 
-    f4 = executor.post({'action': 'wait', 'time': 4})
+    f4 = executor.post({'action': 'wait', 'time': 4 * F})
     f4.add_done_callback(done_callback)
 
     can_cancel = f3.cancel()
@@ -177,7 +192,7 @@ def test_cancel(ActorClass):
     assert can_cancel, 'we should be able to cancel in time'
 
     f4.result()
-    assert test_state['num'] == 7, 'f3 was not cancelled'
+    assert test_state['num'] == 7 * F, 'f3 was not cancelled'
 
     print('Test completed')
     print('L______________')
@@ -188,11 +203,14 @@ def test_actor_args(ActorClass):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_actor_args(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
         >>> test_actor_args(TestThreadActor)
     """
     ex1 = ActorClass.executor(8, factor=8)
     f1 = ex1.post({'action': 'add'})
-    assert f1.result()[1] == 10000064
+    assert f1.result()[1] == 1000 + 64
 
 
 def test_multiple(ActorClass):
@@ -200,6 +218,9 @@ def test_multiple(ActorClass):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> test_multiple(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
         >>> test_multiple(TestThreadActor)
     """
     print('-----------------')

@@ -50,6 +50,15 @@ def parse_version():
     visitor.visit(pt)
     return visitor.version
 
+
+def parse_description():
+    from os.path import dirname, join
+    readme_fpath = join(dirname(__file__), 'README.md')
+    with open(readme_fpath, 'r') as f:
+        # TODO: strip out markdown to make a clean readme for pypi
+        return f.read()
+
+
 version = parse_version()
 
 
@@ -66,4 +75,16 @@ if __name__ == '__main__':
         url='https://github.com/Erotemic/futures_actors',
         license='Apache 2',
         packages=['futures_actors'],
+        classifiers=[
+            # List of classifiers available at:
+            # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+            'Development Status :: 3 - Alpha',
+            'Intended Audience :: Developers',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+            # This should be interpreted as Apache License v2.0
+            'License :: OSI Approved :: Apache Software License',
+            # Supported Python versions
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+        ],
     )

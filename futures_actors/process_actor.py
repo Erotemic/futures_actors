@@ -4,12 +4,14 @@ from concurrent.futures import process
 from futures_actors import _base_actor
 import sys
 import os
-import queue
 import weakref
 import threading
 import multiprocessing
 if sys.version_info.major >= 3:
+    import queue
     from multiprocessing.connection import wait
+else:
+    import Queue as queue
 
 
 # Most of this code is duplicated from the concurrent.futures.thread and

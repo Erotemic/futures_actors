@@ -1,3 +1,7 @@
+[![Travis](https://img.shields.io/travis/Erotemic/futures_actors.svg)](https://travis-ci.org/Erotemic/futures_actors)
+[![Pypi](https://img.shields.io/pypi/v/futures_actors.svg)](https://pypi.python.org/pypi/futures_actors)
+[![Codecov](https://codecov.io/github/Erotemic/futures_actors/badge.svg?branch=master&service=github)](https://codecov.io/github/Erotemic/futures_actors?branch=master)
+
 An extension of the python concurrent.futures module to support stateful computations using a simplified actor model. 
 
 
@@ -7,6 +11,11 @@ Unlike the simple functions that can be run using the builtin concurrent.futures
   maintain its own private state.
 Messages (in the form of arbitrary pickleable objects) can be send to this process allowing communication.
 The actor responds in the form of a Future object.
+
+## Installation:
+```
+pip install git+https://github.com/Erotemic/futures_actors.git
+```
 
 ## API
 There are two main attributes exposed:

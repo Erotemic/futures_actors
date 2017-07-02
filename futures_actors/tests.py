@@ -106,7 +106,7 @@ def test_callbacks(ActorClass, F=0.01):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
-        >>>     test_callbacks(TestProcessActor, F=0.01)
+        >>>     test_callbacks(TestProcessActor, F=1.0)
         >>> except AssertionError:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)
@@ -116,7 +116,7 @@ def test_callbacks(ActorClass, F=0.01):
     Example:
         >>> from futures_actors.tests import *  # NOQA
         >>> try:
-        >>>     test_callbacks(TestThreadActor, F=0.01)
+        >>>     test_callbacks(TestThreadActor, F=1.0)
         >>> except AssertionError:
         >>>     # If it fails once on the fast setting try
         >>>     # once more on a slower setting (for travis python 2.7)

@@ -24,13 +24,13 @@ class ActorExecutor(_base.Executor):
     returned in the form of a `Future` object.
     """
 
-    def post(self, message):
+    def post(self, message):  # nocover
         """
         analagous to _base.Executor.submit, but sends a message to the actor
         controlled by this Executor, and returns a Future.
         """
         raise NotImplementedError(
-            'use ProcessActorExecutor or ThreadActorExecutor')
+            'use ProcessActorExecutor or ThreadActorExecutor')  # nocover
 
 
 class Actor(object):
@@ -59,14 +59,14 @@ class Actor(object):
         >>> assert f.result() == 15
     """
     @classmethod
-    def executor(cls):
+    def executor(cls):  # nocover
         """
         Creates an asychronous instance of this Actor and returns the executor
         to manage it.
         """
         raise NotImplementedError('use ProcessActor or ThreadActor')  # nocover
 
-    def handle(self, message):
+    def handle(self, message):  # nocover
         """
         This method recieves, handles, and responds to the messages sent from
         the executor. This function can return arbitrary values. These values

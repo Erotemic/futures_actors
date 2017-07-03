@@ -22,7 +22,7 @@ class TestActorMixin(object):
         action = message.pop('action', None)
         if action is None:
             raise ValueError('message must have an action item')
-        if action == 'hello world':
+        elif action == 'hello world':
             content = 'hello world'
             return content
         elif action == 'debug':
@@ -37,6 +37,8 @@ class TestActorMixin(object):
             a = actor.state['a']
             n = message['n']
             return n, a, ub.find_nth_prime(n + a)
+        elif action == 'exception':
+            raise Exception('Oops')
         elif action == 'start':
             actor.state['a'] = 3
             return 'started'
@@ -286,6 +288,44 @@ def test_multiple(ActorClass):
     actors = [ex.post({'action': 'debug'}).result() for ex in actors_exs]
     for a in actors:
         print(a.state)
+    print('Test completed')
+    print('L______________')
+
+
+def test_exception(ActorClass):
+    """
+    CommandLine:
+        python -m futures_actors.tests test_exception
+        python -m futures_actors.tests test_exception:0
+        python -m futures_actors.tests test_exception:1
+
+    Ignore:
+        from futures_actors.tests import *  # NOQA
+        ActorClass = TestProcessActor
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_exception(TestProcessActor)
+
+    Example:
+        >>> from futures_actors.tests import *  # NOQA
+        >>> test_exception(TestThreadActor)
+    """
+    executor = ActorClass.executor()
+    print('Submit task 1')
+    f1 = executor.post({'action': 'exception'})
+
+    while not f1.done():
+        pass
+    print('f1 is done')
+
+    try:
+        f1.result()
+    except Exception as ex:
+        print('Correctly got exception = {}'.format(repr(ex)))
+    else:
+        raise AssertionError('should have gotten an exception')
+
     print('Test completed')
     print('L______________')
 

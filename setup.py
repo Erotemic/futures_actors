@@ -90,7 +90,7 @@ if __name__ == '__main__':
         author='Jon Crall',
         install_requires=[
             'futures',
-            # 'ubelt',
+            'ubelt',
         ],
         description='An extension of the concurrent.futures module to support stateful computations.',
         long_description=parse_description(),

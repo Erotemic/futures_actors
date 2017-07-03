@@ -10,8 +10,17 @@ import multiprocessing
 if sys.version_info.major >= 3:
     import queue
     from multiprocessing.connection import wait
+    BrokenProcessPool = process.BrokenProcessPool
 else:
     import Queue as queue
+
+    class BrokenProcessPool(RuntimeError):
+        """
+        Raised when a process in a ProcessPoolExecutor terminated abruptly
+        while a future was in the running state.
+        """
+
+_ResultItem = process._ResultItem
 
 
 # Most of this code is duplicated from the concurrent.futures.thread and
@@ -44,11 +53,14 @@ def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
         try:
             r = actor.handle(call_item.message)
         except BaseException as e:
-            exc = process._ExceptionWithTraceback(e, e.__traceback__)
-            _result_queue.put(process._ResultItem(
+            if sys.version_info.major == 3:
+                exc = process._ExceptionWithTraceback(e, e.__traceback__)
+            else:
+                exc = e  # python2 hack
+            _result_queue.put(_ResultItem(
                 call_item.work_id, exception=exc))
         else:
-            _result_queue.put(process._ResultItem(
+            _result_queue.put(_ResultItem(
                 call_item.work_id, result=r))
 
 
@@ -147,7 +159,7 @@ if sys.version_info.major >= 3:
                 # All futures in flight must be marked failed
                 for work_id, work_item in pending_work_items.items():
                     work_item.future.set_exception(
-                        process.BrokenProcessPool(
+                        BrokenProcessPool(
                             "A process in the process pool was "
                             "terminated abruptly while the future was "
                             "running or pending."
@@ -251,7 +263,8 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
         self._ActorClass = _ActorClass
         # todo: If we want to cancel futures we need to give the task_queue a
         # maximum size
-        self._call_queue = multiprocessing.JoinableQueue()
+        # self._call_queue = multiprocessing.JoinableQueue()
+        self._call_queue = multiprocessing.Queue()
         self._call_queue._ignore_epipe = True
         self._result_queue = multiprocessing.Queue()
         self._work_ids = queue.Queue()
@@ -279,7 +292,7 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
     def post(self, message):
         with self._shutdown_lock:
             if self._broken:
-                raise process.BrokenProcessPool(
+                raise BrokenProcessPool(
                     'A child process terminated '
                     'abruptly, the process pool is not usable anymore')
             if self._shutdown_thread:

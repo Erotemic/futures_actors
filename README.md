@@ -13,9 +13,17 @@ Messages (in the form of arbitrary pickleable objects) can be send to this proce
 The actor responds in the form of a Future object.
 
 ## Installation:
+
+You can install the latest stable version through pypi.
+```
+pip install futures_actors
+```
+
+Or you can install the latest development version through GitHub.
 ```
 pip install git+https://github.com/Erotemic/futures_actors.git
 ```
+
 
 ## API
 There are two main attributes exposed:

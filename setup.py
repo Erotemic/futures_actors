@@ -28,6 +28,7 @@ Pypi:
 
 """
 from setuptools import setup
+import sys
 
 
 def parse_version():
@@ -82,16 +83,17 @@ def parse_description():
 
 version = parse_version()
 
+install_requires = ['ubelt']
+if sys.version_info.major == 2:
+    install_requires += ['futures']
+
 
 if __name__ == '__main__':
     setup(
         name='futures_actors',
         version=version,
         author='Jon Crall',
-        install_requires=[
-            'futures',
-            'ubelt',
-        ],
+        install_requires=install_requires,
         description='An extension of the concurrent.futures module to support stateful computations.',
         long_description=parse_description(),
         author_email='erotemic@gmail.com',

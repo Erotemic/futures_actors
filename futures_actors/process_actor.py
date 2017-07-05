@@ -261,10 +261,10 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
         process._check_system_limits()
 
         self._ActorClass = _ActorClass
-        # todo: If we want to cancel futures we need to give the task_queue a
-        # maximum size
         # self._call_queue = multiprocessing.JoinableQueue()
-        self._call_queue = multiprocessing.Queue()
+        # If we want to cancel futures we need to give the task_queue a maximum
+        # size
+        self._call_queue = multiprocessing.Queue(1)
         self._call_queue._ignore_epipe = True
         self._result_queue = multiprocessing.Queue()
         self._work_ids = queue.Queue()

@@ -7,6 +7,16 @@ import os
 import weakref
 import threading
 import multiprocessing
+
+# Most of this code is duplicated from the concurrent.futures.thread and
+# concurrent.futures.process modules, written by Brian Quinlan. The main
+# difference is that we expose an `Actor` class which can be inherited from and
+# provides the `executor` classmethod. This creates an asynchronously
+# maintained instance of this class in a separate thread/process
+
+__author__ = 'Jon Crall (erotemic@gmail.com)'
+
+
 if sys.version_info.major >= 3:
     import queue
     from multiprocessing.connection import wait
@@ -20,16 +30,34 @@ else:
         while a future was in the running state.
         """
 
+if hasattr(process, '_ExceptionWithTraceback'):
+    # Maybe we should just duplicate all futures structures to not be sensitive
+    # to external code changes
+    _ExceptionWithTraceback = process._ExceptionWithTraceback
+else:
+    import traceback
+    # Python 3.4 does not define _ExceptionWithTraceback
+    class _RemoteTraceback(Exception):
+        def __init__(self, tb):
+            self.tb = tb
+        def __str__(self):
+            return self.tb
+
+    class _ExceptionWithTraceback:
+        def __init__(self, exc, tb):
+            tb = traceback.format_exception(type(exc), exc, tb)
+            tb = ''.join(tb)
+            self.exc = exc
+            self.tb = '\n"""\n%s"""' % tb
+        def __reduce__(self):
+            return _rebuild_exc, (self.exc, self.tb)
+
+    def _rebuild_exc(exc, tb):
+        exc.__cause__ = _RemoteTraceback(tb)
+        return exc
+
+
 _ResultItem = process._ResultItem
-
-
-# Most of this code is duplicated from the concurrent.futures.thread and
-# concurrent.futures.process modules, written by Brian Quinlan. The main
-# difference is that we expose an `Actor` class which can be inherited from and
-# provides the `executor` classmethod. This creates an asynchronously
-# maintained instance of this class in a separate thread/process
-
-__author__ = 'Jon Crall (erotemic@gmail.com)'
 
 
 def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
@@ -54,7 +82,7 @@ def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
             r = actor.handle(call_item.message)
         except BaseException as e:
             if sys.version_info.major == 3:
-                exc = process._ExceptionWithTraceback(e, e.__traceback__)
+                exc = _ExceptionWithTraceback(e, e.__traceback__)
             else:
                 exc = e  # python2 hack
             _result_queue.put(_ResultItem(

@@ -1,11 +1,7 @@
 import futures_actors
-import sys
 from concurrent import futures
 import ubelt as ub
 from os.path import join, exists
-
-ONLY_THREAD = '--only-thread' in sys.argv
-ONLY_PROC = '--only-proc' in sys.argv
 
 
 class TestActorMixin(object):

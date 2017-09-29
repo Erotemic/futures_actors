@@ -194,7 +194,8 @@ if sys.version_info.major >= 3:
                         ))
                     # Delete references to object. See issue16284
                     del work_item
-                pending_work_items.clear()
+                # pending_work_items.clear()
+                del pending_work_items[:]
                 # Terminate remaining workers forcibly: the queues or their
                 # locks may be in a dirty state and block forever.
                 _manager.terminate()
